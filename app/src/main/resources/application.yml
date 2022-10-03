@@ -1,0 +1,3 @@
+spring:
+  ai:
+    url: http://localhost:8888/api/ai/voice/
