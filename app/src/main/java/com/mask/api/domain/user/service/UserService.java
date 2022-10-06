@@ -16,13 +16,12 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public ResponseEntity<?> login (String name){
+    public ResponseEntity<?> login (String email){
         var user = User.builder()
-                        .username(name)
-                        .email(name)
+                        .email(email)
                         .build();
 
         userRepository.save(user);
-        return new ResponseEntity<>(name, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
     }
 }
