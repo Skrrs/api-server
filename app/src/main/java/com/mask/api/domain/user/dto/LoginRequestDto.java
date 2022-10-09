@@ -9,5 +9,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class UserDto {
+public class LoginRequestDto {
+    private String email;
+
+    private String name;
 }
+
