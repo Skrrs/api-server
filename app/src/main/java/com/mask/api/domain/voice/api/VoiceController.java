@@ -17,8 +17,8 @@ public class VoiceController {
 
 
     @PostMapping("/")
-    public ResponseEntity<?> getAudioFile(@ModelAttribute MultipartFile audioFile) {
-        return voiceService.getAudioFile(audioFile);
+    public ResponseEntity<?> getAudioFile(@ModelAttribute MultipartFile audioFile, String answer) {
+        return voiceService.getAudioFile(audioFile, answer);
     }
 
 
