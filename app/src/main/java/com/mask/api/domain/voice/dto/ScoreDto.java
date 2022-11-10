@@ -8,5 +8,5 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class ScoreDto {
-    private int result;
+    private int index;
 }

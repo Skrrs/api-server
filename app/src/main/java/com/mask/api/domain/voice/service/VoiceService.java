@@ -2,6 +2,8 @@ package com.mask.api.domain.voice.service;
 
 import com.mask.api.domain.voice.dto.ScoreDto;
 import com.mask.api.domain.voice.dto.TestResultDto;
+import com.mask.api.global.common.Response;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -13,13 +15,25 @@ import java.util.Objects;
 
 
 @Service
+@RequiredArgsConstructor
 public class VoiceService {
+
+    private final Response Response;
 
     @Value("${spring.ai.url}")
     public String url;
 
     public ResponseEntity<?> getAudioFile(MultipartFile audioFile, String answer) {
 
+        ResponseEntity<TestResultDto> testResult = getTestResult(audioFile, answer);
+        Double cer = Objects.requireNonNull(testResult.getBody()).getCer();
+        int index = getIndexOfScore(cer);
+        ScoreDto result = ScoreDto.builder().index(index).build();
+
+        return Response.success(result, HttpStatus.OK);
+    }
+
+    private ResponseEntity<TestResultDto> getTestResult(MultipartFile audioFile, String answer) {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
@@ -29,18 +43,12 @@ public class VoiceService {
         body.add("answer", answer);
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-        RestTemplate restTemplate = new RestTemplate();
-
-        var testResult = restTemplate.exchange(url, HttpMethod.POST, requestEntity, TestResultDto.class);
-        Double cer = Objects.requireNonNull(testResult.getBody()).getCer();
-        int score = getScore(cer);
-        ScoreDto result = ScoreDto.builder().result(score).build();
-
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        var restTemplate = new RestTemplate();
+        return restTemplate.exchange(url, HttpMethod.POST, requestEntity, TestResultDto.class);
 
     }
 
-    private int getScore(Double cer) {
+    private int getIndexOfScore(Double cer) {
         if(cer < 20)
             return 1;
         else if(cer < 40)
