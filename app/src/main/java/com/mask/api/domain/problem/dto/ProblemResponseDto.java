@@ -9,5 +9,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ProblemDto {
+public class ProblemResponseDto {
+    boolean result;
 }

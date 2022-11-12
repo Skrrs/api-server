@@ -8,12 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api")
 @RequiredArgsConstructor //DI
 public class UserController {
     private final UserService userService; //DI
-//    @PostMapping("/login")
-//    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto){
-//        return userService.login(loginRequestDto);
-//    }
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto){
+        return userService.login(loginRequestDto);
+    }
 }
