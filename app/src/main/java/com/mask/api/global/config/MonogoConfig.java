@@ -20,6 +20,15 @@ public class MonogoConfig {
     @Value("${spring.data.mongodb.port}")
     private String port;
 
+    @Value("${spring.data.mongodb.username}")
+    private String username;
+
+    @Value("${spring.data.mongodb.password}")
+    private String password;
+
+    @Value("${spring.data.mongodb.authentication-database}")
+    private String auth;
+
     @Bean
     public MongoClient mongo() {
         String uri = "mongodb://" + host + ":" + port + "/mask";
@@ -27,7 +36,7 @@ public class MonogoConfig {
         ConnectionString connectionString = new ConnectionString(uri);
         MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
                 .applyConnectionString(connectionString)
-                .credential(MongoCredential.createCredential("mask", "admin", "mask1234".toCharArray()))
+                .credential(MongoCredential.createCredential(username, auth, password.toCharArray()))
                 .build();
 
         return MongoClients.create(mongoClientSettings);

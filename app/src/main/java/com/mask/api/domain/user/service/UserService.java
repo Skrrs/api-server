@@ -7,6 +7,8 @@ import com.mask.api.domain.user.dto.LoginRequestDto;
 import com.mask.api.domain.user.dto.LoginResponseDto;
 import com.mask.api.domain.user.dto.LogoutRequestDto;
 import com.mask.api.global.common.Response;
+import com.mask.api.global.exception.CustomException;
+import com.mask.api.global.exception.ErrorCode;
 import com.mask.api.global.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -71,5 +74,24 @@ public class UserService implements UserDetailsService {
         log.info("NEW TOKEN CREATED {}",token);
 
         return response.success(responseDto,HttpStatus.OK);
+    }
+    public ResponseEntity<?> logout(LogoutRequestDto logoutRequestDto) {
+        var email = logoutRequestDto.getEmail();
+        String isLogout = redisTemplate.opsForValue().get(logoutRequestDto.getToken());
+
+        if(!ObjectUtils.isEmpty(isLogout)) throw new CustomException(ErrorCode.INVALID_ACCESS);
+
+        // redis에서 refreshToken 지우기
+        if(redisTemplate.opsForValue().get(email)!=null){
+            redisTemplate.delete(email);
+        }
+
+        // redis black list에 추가
+        redisTemplate.opsForValue()
+                .set(logoutRequestDto.getToken(), "logout", JwtTokenProvider.ACCESS_TIME, TimeUnit.SECONDS);
+
+        log.info("LOGOUT {}",email);
+
+        return response.success(null,HttpStatus.OK);
     }
 }
