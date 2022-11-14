@@ -16,4 +16,9 @@ public class ProblemController  {
 //    public ResponseEntity<?> gradeProblem(@RequestPart MultipartFile file) {
 //        return problemService.gradeProblem(file);
 //    }
+    @GetMapping("/insert")
+    public String insertProblem(){
+        problemService.insertProblem();
+        return "Done";
+    }
 }
