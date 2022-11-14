@@ -1,3 +1,5 @@
+server:
+  port : 8000
 spring:
   ai:
     url: http://localhost:8888/api/ai/voice/
@@ -6,3 +8,9 @@ spring:
       host: 127.0.0.1
       port: 27017
       authentication-database: admin
+      database : mask
+
+  redis:
+#    host: redis
+    host: 127.0.0.1
+    port: 6379

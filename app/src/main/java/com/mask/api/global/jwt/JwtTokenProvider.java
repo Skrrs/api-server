@@ -21,14 +21,6 @@ public class JwtTokenProvider {
 
     public static Algorithm ALGORITHM;
 
-    @Builder
-    @Data
-    @AllArgsConstructor
-    public class VerifyResult {
-        private boolean success;
-        private String email;
-    }
-
     @PostConstruct
     private void init(){
         JWT_SECRET = Base64.getEncoder().encodeToString(JWT_SECRET.getBytes());
