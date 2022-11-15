@@ -60,7 +60,7 @@ public class UserService implements UserDetailsService {
                     .email(loginRequestDto.getEmail())
                     .calendar(null)
                     .progress(progress)
-                    .library(null)
+                    .library(new ArrayList<Problem>())
                     .authorities(authority)
                     .build();
             userRepository.save(newUser);
@@ -119,29 +119,29 @@ public class UserService implements UserDetailsService {
             case 3: level_s = "advanced"; progress = user.getProgress().getAdvanced();break;
             default: throw new CustomException(ErrorCode.INVALID_ACCESS);
         }
-        // 요청 level의 문제 길이.
-        var problem_len = problemRepository.findProblemsByLevel(level_s).size();
+        // 요청한 전체 problem.
+        var problems = problemRepository.findProblemsByLevel(level_s);
+        var temp = new ArrayList<Integer>();
 
         // 랜덤하게 TEST_NUM 만큼 중복없이 선택.
         Random random = new Random(); //랜덤 객체 생성
         random.setSeed(System.currentTimeMillis()); //시드값 설정
         for(int i=0;i<TEST_NUM;i++){
-            var idx = random.nextInt(problem_len) + 1;
-            idxs.add(idx);
-            if(idxs.size() != idxs.stream().distinct().count()){
+            var idx = random.nextInt(problems.size());
+            temp.add(idx);
+            if(temp.size() != temp.stream().distinct().count()){
                 // 중복 제거.
-                idxs.remove(i);
+                temp.remove(i);
                 i--;
             }
             else{
-                var pb = problemRepository.findProblemsByLevelAndIdx(level_s,idx);
-                urls.add(pb.getUrl());
-                sentences.add(pb.getAnswer());
-                prons.add(pb.getPron());
-                engs.add(pb.getEnglish());
-
+                urls.add(problems.get(idx).getUrl());
+                sentences.add(problems.get(idx).getAnswer());
+                prons.add(problems.get(idx).getPron());
+                engs.add(problems.get(idx).getEnglish());
+                idxs.add(problems.get(idx).getIdx());
                 /* Main에서는 (Hashset size) / (해당 level problem size) 로 진행율 전송.*/
-                progress.add(idx); // user 해당 난이도 진행도 기록.
+                progress.add(problems.get(idx).getIdx()); // user 해당 난이도 진행도 기록.
             }
         }
         // user 해당 난이도 진행도 기록.
@@ -169,28 +169,22 @@ public class UserService implements UserDetailsService {
         return response.success(responseDto,HttpStatus.OK);
     }
 
-    public ResponseEntity<?> favoriteAdd(String email,Integer level, FavoriteRequestDto favoriteRequestDto){
+    public ResponseEntity<?> favoriteAdd(String email,FavoriteRequestDto favoriteRequestDto){
         var userOptional = userRepository.findByEmail(email);
         if(userOptional.isEmpty()) throw new CustomException(ErrorCode.USER_NOT_FOUND);
 
         var user = userOptional.get();
         var idxs = favoriteRequestDto.getProblem();
         var pbs = user.getLibrary();
-        String level_s = null;
-        switch(level){
-            case 1: level_s = "beginner"; break;
-            case 2: level_s = "intermediate"; break;
-            case 3: level_s = "advanced"; break;
-            default: throw new CustomException(ErrorCode.INVALID_ACCESS);
-        }
+
         for(int i=0;i<idxs.size();i++){
             var idx = idxs.get(i);
-            var pb = problemRepository.findProblemsByLevelAndIdx(level_s,idx);
+            var pb = problemRepository.findProblemByIdx(idx);
             pbs.add(pb);
         }
         user.setLibrary(pbs);
         userRepository.save(user);
-        log.info("Add Favorite Success Idx:{} level:{}",idxs,level_s);
+        log.info("Add Favorite Success Idx:{}",idxs);
         return response.success(null,HttpStatus.OK);
     }
 }

@@ -30,10 +30,9 @@ public class UserController {
         return userService.requestTest(email, level);
     }
 
-    @PostMapping("/user/{email}/fav/{level}")
+    @PostMapping("/user/{email}/fav")
     public ResponseEntity<?> favoriteAdd(@PathVariable(name="email")String email,
-                                         @PathVariable(name="level")Integer level,
                                          @RequestBody FavoriteRequestDto favoriteRequestDto){
-        return userService.favoriteAdd(email,level,favoriteRequestDto);
+        return userService.favoriteAdd(email,favoriteRequestDto);
     }
 }
