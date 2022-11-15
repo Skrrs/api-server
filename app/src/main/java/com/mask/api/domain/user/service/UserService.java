@@ -187,4 +187,25 @@ public class UserService implements UserDetailsService {
         log.info("Add Favorite Success Idx:{}",idxs);
         return response.success(null,HttpStatus.OK);
     }
+    public ResponseEntity<?> favoriteRemove(String email,FavoriteRequestDto favoriteRequestDto){
+        var userOptional = userRepository.findByEmail(email);
+        if(userOptional.isEmpty()) throw new CustomException(ErrorCode.USER_NOT_FOUND);
+
+        var user = userOptional.get();
+        var idxs = favoriteRequestDto.getProblem();
+        var pbs = user.getLibrary();
+
+        for (Integer idx : idxs) {
+            if(pbs.contains(idx)){
+                pbs.remove(idx);
+            }
+            else{
+                throw new CustomException(ErrorCode.INVALID_ACCESS);
+            }
+        }
+        user.setLibrary(pbs);
+        userRepository.save(user);
+        log.info("Remove Favorite Success Idx:{}",idxs);
+        return response.success(null,HttpStatus.OK);
+    }
 }
