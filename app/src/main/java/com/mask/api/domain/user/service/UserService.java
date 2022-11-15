@@ -1,14 +1,14 @@
 package com.mask.api.domain.user.service;
 
 import com.mask.api.domain.problem.dao.ProblemRepository;
-import com.mask.api.domain.problem.domain.Problem;
 import com.mask.api.domain.user.dao.UserRepository;
 import com.mask.api.domain.user.domain.Progress;
 import com.mask.api.domain.user.domain.User;
-import com.mask.api.domain.user.dto.LoginRequestDto;
-import com.mask.api.domain.user.dto.LoginResponseDto;
-import com.mask.api.domain.user.dto.LogoutRequestDto;
-import com.mask.api.domain.user.dto.TestResponseDto;
+import com.mask.api.domain.user.dto.favorite.FavoriteRequestDto;
+import com.mask.api.domain.user.dto.login.LoginRequestDto;
+import com.mask.api.domain.user.dto.login.LoginResponseDto;
+import com.mask.api.domain.user.dto.login.LogoutRequestDto;
+import com.mask.api.domain.problem.dto.ProblemResponseDto;
 import com.mask.api.global.common.Response;
 import com.mask.api.global.exception.CustomException;
 import com.mask.api.global.exception.ErrorCode;
@@ -156,7 +156,7 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
 
         // response dto 작성.
-        var responseDto = TestResponseDto.builder()
+        var responseDto = ProblemResponseDto.builder()
                 .index(idxs)
                 .sentence(sentences)
                 .voiceUrl(urls)
@@ -166,5 +166,9 @@ public class UserService implements UserDetailsService {
 
         log.info("Test Request Success {}",idxs);
         return response.success(responseDto,HttpStatus.OK);
+    }
+
+    public ResponseEntity<?> favoriteAdd(String email, FavoriteRequestDto favoriteRequestDto){
+        return response.success(null,HttpStatus.OK);
     }
 }

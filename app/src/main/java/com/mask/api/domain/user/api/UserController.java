@@ -1,8 +1,9 @@
 package com.mask.api.domain.user.api;
 
 
-import com.mask.api.domain.user.dto.LoginRequestDto;
-import com.mask.api.domain.user.dto.LogoutRequestDto;
+import com.mask.api.domain.user.dto.favorite.FavoriteRequestDto;
+import com.mask.api.domain.user.dto.login.LoginRequestDto;
+import com.mask.api.domain.user.dto.login.LogoutRequestDto;
 import com.mask.api.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,5 +28,11 @@ public class UserController {
     public ResponseEntity<?> requestTest(@PathVariable(name="email")String email,
                                          @PathVariable(name="level")Integer level){
         return userService.requestTest(email, level);
+    }
+
+    @PostMapping("/user/{email}/fav")
+    public ResponseEntity<?> favoriteAdd(@PathVariable(name="email")String email,
+                                         @RequestBody FavoriteRequestDto favoriteRequestDto){
+        return userService.favoriteAdd(email,favoriteRequestDto);
     }
 }
