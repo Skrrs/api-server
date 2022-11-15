@@ -175,7 +175,7 @@ public class UserService implements UserDetailsService {
 
         var user = userOptional.get();
         var idxs = favoriteRequestDto.getProblem();
-        var pbs = new ArrayList<Problem>();
+        var pbs = user.getLibrary();
         String level_s = null;
         switch(level){
             case 1: level_s = "beginner"; break;
