@@ -21,11 +21,11 @@ public class Response {
     }
 
 
-    public ResponseEntity<?> success(Object data, HttpStatus status){
+    public ResponseEntity<?> success(Object data,HttpStatus status){
 
         Body body = Body.builder()
                 .result(data)
-                .message("")
+                .message("Success")
                 .build();
 
         return ResponseEntity.status(status).body(body);
