@@ -20,5 +20,7 @@ public class Problem {
 
     private String pron;
 
+    private String english;
+
     private String url;
 }
