@@ -1,6 +1,7 @@
 package com.mask.api.domain.user.service;
 
 import com.mask.api.domain.problem.dao.ProblemRepository;
+import com.mask.api.domain.problem.domain.Problem;
 import com.mask.api.domain.user.dao.UserRepository;
 import com.mask.api.domain.user.domain.Progress;
 import com.mask.api.domain.user.domain.User;
@@ -164,11 +165,32 @@ public class UserService implements UserDetailsService {
                 .english(engs)
                 .build();
 
-        log.info("Test Request Success {}",idxs);
+        log.info("Test Request Success Idx:{} level:{}",idxs,level_s);
         return response.success(responseDto,HttpStatus.OK);
     }
 
-    public ResponseEntity<?> favoriteAdd(String email, FavoriteRequestDto favoriteRequestDto){
+    public ResponseEntity<?> favoriteAdd(String email,Integer level, FavoriteRequestDto favoriteRequestDto){
+        var userOptional = userRepository.findByEmail(email);
+        if(userOptional.isEmpty()) throw new CustomException(ErrorCode.USER_NOT_FOUND);
+
+        var user = userOptional.get();
+        var idxs = favoriteRequestDto.getProblem();
+        var pbs = new ArrayList<Problem>();
+        String level_s = null;
+        switch(level){
+            case 1: level_s = "beginner"; break;
+            case 2: level_s = "intermediate"; break;
+            case 3: level_s = "advanced"; break;
+            default: throw new CustomException(ErrorCode.INVALID_ACCESS);
+        }
+        for(int i=0;i<idxs.size();i++){
+            var idx = idxs.get(i);
+            var pb = problemRepository.findProblemsByLevelAndIdx(level_s,idx);
+            pbs.add(pb);
+        }
+        user.setLibrary(pbs);
+        userRepository.save(user);
+        log.info("Add Favorite Success Idx:{} level:{}",idxs,level_s);
         return response.success(null,HttpStatus.OK);
     }
 }
