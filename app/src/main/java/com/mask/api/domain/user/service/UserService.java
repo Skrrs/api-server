@@ -60,7 +60,7 @@ public class UserService implements UserDetailsService {
                     .email(loginRequestDto.getEmail())
                     .calendar(null)
                     .progress(progress)
-                    .library(new ArrayList<Problem>())
+                    .library(new HashSet<Problem>())
                     .authorities(authority)
                     .build();
             userRepository.save(newUser);
