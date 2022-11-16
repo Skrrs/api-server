@@ -19,6 +19,10 @@ public class UserController {
         return userService.login(loginRequestDto);
     }
 
+    @GetMapping("/user/{email}")
+    public ResponseEntity<?> mainRequest(@PathVariable(name="email")String email){
+        return userService.mainRequest(email);
+    }
     @PostMapping("/user/logout")
     public ResponseEntity<?> logout(@RequestBody LogoutRequestDto logoutRequestDto){
         return userService.logout(logoutRequestDto);
