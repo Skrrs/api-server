@@ -196,11 +196,12 @@ public class UserService implements UserDetailsService {
         var pbs = user.getLibrary();
 
         for (Integer idx : idxs) {
-            if(pbs.contains(idx)){
-                pbs.remove(idx);
+            var pb = problemRepository.findProblemByIdx(idx);
+            if(pbs.contains(pb)){
+                pbs.remove(pb);
             }
             else{
-                throw new CustomException(ErrorCode.INVALID_ACCESS);
+                throw new CustomException(ErrorCode.INVALID_ACCESS); //즐겨찾기에 없는 인덱스면 Error.
             }
         }
         user.setLibrary(pbs);
