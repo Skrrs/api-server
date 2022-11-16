@@ -35,4 +35,10 @@ public class UserController {
                                          @RequestBody FavoriteRequestDto favoriteRequestDto){
         return userService.favoriteAdd(email,favoriteRequestDto);
     }
+
+    @DeleteMapping("/user/{email}/fav/{index}")
+    public ResponseEntity<?> favoriteRemove(@PathVariable(name="email")String email,
+                                            @PathVariable(name="index")Integer index){
+        return userService.favoriteRemove(email,index);
+    }
 }
