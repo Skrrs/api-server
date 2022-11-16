@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface ProblemRepository extends MongoRepository<Problem,String> {
     List<Problem> findProblemsByLevel(String level);
-    Problem findProblemsByLevelAndIdx(String level,Integer idx);
+    Problem findProblemByIdx(Integer idx);
 }

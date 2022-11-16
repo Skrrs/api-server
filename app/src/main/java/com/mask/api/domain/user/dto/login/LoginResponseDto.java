@@ -1,4 +1,4 @@
-package com.mask.api.domain.user.dto;
+package com.mask.api.domain.user.dto.login;
 
 import lombok.Builder;
 import lombok.Getter;
