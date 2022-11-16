@@ -217,26 +217,22 @@ public class UserService implements UserDetailsService {
         log.info("Add Favorite Success Idx:{}",idxs);
         return response.success(null,HttpStatus.OK);
     }
-    public ResponseEntity<?> favoriteRemove(String email,FavoriteRequestDto favoriteRequestDto){
+    public ResponseEntity<?> favoriteRemove(String email,Integer index){
         var userOptional = userRepository.findByEmail(email);
         if(userOptional.isEmpty()) throw new CustomException(ErrorCode.USER_NOT_FOUND);
 
         var user = userOptional.get();
-        var idxs = favoriteRequestDto.getProblem();
         var pbs = user.getLibrary();
-
-        for (Integer idx : idxs) {
-            var pb = problemRepository.findProblemByIdx(idx);
-            if(pbs.contains(pb)){
-                pbs.remove(pb);
-            }
-            else{
-                throw new CustomException(ErrorCode.INVALID_ACCESS); //즐겨찾기에 없는 인덱스면 Error.
-            }
+        var pb = problemRepository.findProblemByIdx(index);
+        if(pbs.contains(pb)) {
+            pbs.remove(pb);
+        }
+        else{
+            throw new CustomException(ErrorCode.INVALID_ACCESS); //즐겨찾기에 없는 인덱스면 Error.
         }
         user.setLibrary(pbs);
         userRepository.save(user);
-        log.info("Remove Favorite Success Idx:{}",idxs);
+        log.info("Remove Favorite Success Idx:{}",index);
         return response.success(null,HttpStatus.OK);
     }
 }
