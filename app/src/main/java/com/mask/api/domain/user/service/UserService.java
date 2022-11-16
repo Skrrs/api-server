@@ -168,6 +168,36 @@ public class UserService implements UserDetailsService {
         log.info("Test Request Success Idx:{} level:{}",idxs,level_s);
         return response.success(responseDto,HttpStatus.OK);
     }
+    public ResponseEntity<?> favoriteRequest(String email){
+        var userOptional = userRepository.findByEmail(email);
+        if(userOptional.isEmpty()) throw new CustomException(ErrorCode.USER_NOT_FOUND);
+
+        var user = userOptional.get();
+        var pbs = user.getLibrary();
+        List<String> urls = new ArrayList<>();
+        List<String> sentences = new ArrayList<>();
+        List<String> prons = new ArrayList<>();
+        List<String> engs = new ArrayList<>();
+        List<Integer> idxs = new ArrayList<>();
+        pbs.forEach(
+                pb->{
+                    idxs.add(pb.getIdx());
+                    sentences.add(pb.getAnswer());
+                    prons.add(pb.getPron());
+                    engs.add(pb.getEnglish());
+                    urls.add(pb.getUrl());
+                }
+        );
+        var responseDto = ProblemResponseDto.builder()
+                .index(idxs)
+                .sentence(sentences)
+                .voiceUrl(urls)
+                .pron(prons)
+                .english(engs)
+                .build();
+        log.info("Favorite Request Success Idx:{}",idxs);
+        return response.success(responseDto,HttpStatus.OK);
+    }
 
     public ResponseEntity<?> favoriteAdd(String email,FavoriteRequestDto favoriteRequestDto){
         var userOptional = userRepository.findByEmail(email);
