@@ -1,11 +1,14 @@
 package com.mask.api.domain.user.service;
 
+import com.mask.api.domain.problem.dao.ProblemRepository;
+import com.mask.api.domain.problem.domain.Problem;
 import com.mask.api.domain.user.dao.UserRepository;
 import com.mask.api.domain.user.domain.Progress;
 import com.mask.api.domain.user.domain.User;
 import com.mask.api.domain.user.dto.LoginRequestDto;
 import com.mask.api.domain.user.dto.LoginResponseDto;
 import com.mask.api.domain.user.dto.LogoutRequestDto;
+import com.mask.api.domain.user.dto.TestResponseDto;
 import com.mask.api.global.common.Response;
 import com.mask.api.global.exception.CustomException;
 import com.mask.api.global.exception.ErrorCode;
@@ -31,9 +34,10 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
+    private final ProblemRepository problemRepository;
     private final Response response;
     private final RedisTemplate<String, String> redisTemplate;
-
+    private Integer TEST_NUM = 5;
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         var optionalUser = userRepository.findByEmail(email);
@@ -47,9 +51,9 @@ public class UserService implements UserDetailsService {
             var authority = new HashSet<GrantedAuthority>();
             authority.add(new SimpleGrantedAuthority("ROLE_USER"));
             var progress = Progress.builder()
-                    .advanced(0)
-                    .intermediate(0)
-                    .beginner(0)
+                    .advanced(new HashSet<>())
+                    .intermediate(new HashSet<>())
+                    .beginner(new HashSet<>())
                     .build();
             var newUser = User.builder()
                     .email(loginRequestDto.getEmail())
@@ -75,6 +79,7 @@ public class UserService implements UserDetailsService {
 
         return response.success(responseDto,HttpStatus.OK);
     }
+
     public ResponseEntity<?> logout(LogoutRequestDto logoutRequestDto) {
         var email = logoutRequestDto.getEmail();
         String isLogout = redisTemplate.opsForValue().get(logoutRequestDto.getToken());
@@ -93,5 +98,73 @@ public class UserService implements UserDetailsService {
         log.info("LOGOUT {}",email);
 
         return response.success(null,HttpStatus.OK);
+    }
+
+    public ResponseEntity<?> requestTest(String email, Integer level){
+        var userOptional = userRepository.findByEmail(email);
+        if(userOptional.isEmpty()) throw new CustomException(ErrorCode.USER_NOT_FOUND);
+
+        var user = userOptional.get();
+        List<String> urls = new ArrayList<>();
+        List<String> sentences = new ArrayList<>();
+        List<String> prons = new ArrayList<>();
+        List<String> engs = new ArrayList<>();
+        List<Integer> idxs = new ArrayList<>();
+        HashSet<Integer> progress;
+        String level_s = null;
+        switch(level){
+            case 1: level_s = "beginner"; progress = user.getProgress().getBeginner();break;
+            case 2: level_s = "intermediate"; progress = user.getProgress().getIntermediate();break;
+            case 3: level_s = "advanced"; progress = user.getProgress().getAdvanced();break;
+            default: throw new CustomException(ErrorCode.INVALID_ACCESS);
+        }
+        // 요청 level의 문제 길이.
+        var problem_len = problemRepository.findProblemsByLevel(level_s).size();
+
+        // 랜덤하게 TEST_NUM 만큼 중복없이 선택.
+        Random random = new Random(); //랜덤 객체 생성
+        random.setSeed(System.currentTimeMillis()); //시드값 설정
+        for(int i=0;i<TEST_NUM;i++){
+            var idx = random.nextInt(problem_len) + 1;
+            idxs.add(idx);
+            if(idxs.size() != idxs.stream().distinct().count()){
+                // 중복 제거.
+                idxs.remove(i);
+                i--;
+            }
+            else{
+                var pb = problemRepository.findProblemsByLevelAndIdx(level_s,idx);
+                urls.add(pb.getUrl());
+                sentences.add(pb.getAnswer());
+                prons.add(pb.getPron());
+                engs.add(pb.getEnglish());
+
+                /* Main에서는 (Hashset size) / (해당 level problem size) 로 진행율 전송.*/
+                progress.add(idx); // user 해당 난이도 진행도 기록.
+            }
+        }
+        // user 해당 난이도 진행도 기록.
+        if(level == 1){
+            user.getProgress().setBeginner(progress);
+        }
+        else if(level == 2){
+            user.getProgress().setIntermediate(progress);
+        }
+        else{
+            user.getProgress().setAdvanced(progress);
+        }
+        userRepository.save(user);
+
+        // response dto 작성.
+        var responseDto = TestResponseDto.builder()
+                .index(idxs)
+                .sentence(sentences)
+                .voiceUrl(urls)
+                .pron(prons)
+                .english(engs)
+                .build();
+
+        log.info("Test Request Success {}",idxs);
+        return response.success(responseDto,HttpStatus.OK);
     }
 }

@@ -4,10 +4,8 @@ package com.mask.api.domain.user.api;
 import com.mask.api.domain.user.dto.LoginRequestDto;
 import com.mask.api.domain.user.dto.LogoutRequestDto;
 import com.mask.api.domain.user.service.UserService;
-import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,5 +21,11 @@ public class UserController {
     @PostMapping("/user/logout")
     public ResponseEntity<?> logout(@RequestBody LogoutRequestDto logoutRequestDto){
         return userService.logout(logoutRequestDto);
+    }
+
+    @GetMapping("/user/{email}/test/{level}")
+    public ResponseEntity<?> requestTest(@PathVariable(name="email")String email,
+                                         @PathVariable(name="level")Integer level){
+        return userService.requestTest(email, level);
     }
 }
