@@ -36,6 +36,11 @@ public class UserController {
         return userService.favoriteAdd(email,favoriteRequestDto);
     }
 
+    @GetMapping("/user/{email}/fav")
+    public ResponseEntity<?> favoriteRequest(@PathVariable(name="email")String email){
+        return userService.favoriteRequest(email);
+    }
+
     @DeleteMapping("/user/{email}/fav/{index}")
     public ResponseEntity<?> favoriteRemove(@PathVariable(name="email")String email,
                                             @PathVariable(name="index")Integer index){
