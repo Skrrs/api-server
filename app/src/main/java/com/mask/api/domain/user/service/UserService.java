@@ -10,6 +10,7 @@ import com.mask.api.domain.user.dto.login.LoginRequestDto;
 import com.mask.api.domain.user.dto.login.LoginResponseDto;
 import com.mask.api.domain.user.dto.login.LogoutRequestDto;
 import com.mask.api.domain.problem.dto.ProblemResponseDto;
+import com.mask.api.domain.user.dto.login.MainResponseDto;
 import com.mask.api.global.common.Response;
 import com.mask.api.global.exception.CustomException;
 import com.mask.api.global.exception.ErrorCode;
@@ -77,6 +78,27 @@ public class UserService implements UserDetailsService {
                 .set(user.getEmail(), token,JwtTokenProvider.ACCESS_TIME
                         , TimeUnit.SECONDS);
         log.info("NEW TOKEN CREATED {}",token);
+
+        return response.success(responseDto,HttpStatus.OK);
+    }
+    public ResponseEntity<?> mainRequest(String email){
+        var userOptional = userRepository.findByEmail(email);
+        if(userOptional.isEmpty()) throw new CustomException(ErrorCode.USER_NOT_FOUND);
+
+        var user = userOptional.get();
+        var beginner_size = problemRepository.findProblemsByLevel("beginner").size();
+        var intermediate_size = problemRepository.findProblemsByLevel("intermediate").size();
+        var advanced_size = problemRepository.findProblemsByLevel("advanced").size();
+
+        var beginner_ptg = ((double)user.getProgress().getBeginner().size() / beginner_size) * 100;
+        var intermediate_ptg = ((double)user.getProgress().getIntermediate().size() / intermediate_size) * 100;
+        var advanced_ptg = ((double)user.getProgress().getAdvanced().size() / advanced_size) * 100;
+
+        var responseDto = MainResponseDto.builder()
+                .beginner((int)beginner_ptg)
+                .intermediate((int)intermediate_ptg)
+                .advanced((int)advanced_ptg)
+                .build();
 
         return response.success(responseDto,HttpStatus.OK);
     }
