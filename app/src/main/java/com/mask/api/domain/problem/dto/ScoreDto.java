@@ -1,4 +1,4 @@
-package com.mask.api.domain.voice.dto;
+package com.mask.api.domain.problem.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

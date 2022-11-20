@@ -12,10 +12,11 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProblemController  {
     private final ProblemService problemService;
 
-//    @PostMapping("/grade")
-//    public ResponseEntity<?> gradeProblem(@RequestPart MultipartFile file) {
-//        return problemService.gradeProblem(file);
-//    }
+    @PostMapping("/grade")
+    public ResponseEntity<?> gradeProblem(@RequestPart MultipartFile audioFile, String answer) {
+        return problemService.gradeProblem(audioFile, answer);
+    }
+
     @GetMapping("/insert")
     public String insertProblem(){
         problemService.insertProblem();
