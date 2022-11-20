@@ -1,4 +1,4 @@
-package com.mask.api.domain.voice.service;
+package com.mask.api.domain.problem.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -20,18 +20,24 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
+
 @SpringBootTest
-class VoiceServiceTest {
+class ProblemServiceTest {
+
+    @Test
+    void gradeProblem() {
+    }
+
 
     @Autowired
-    private VoiceService voiceService;
+    private ProblemService problemService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     private ClientAndServer mockServer;
 
-    static String aiServerResult = "{\"cer\": 15, \"recognized_text\": \"sample text\"}";
+    static String aiServerResult = "{\"cer\": 10.0, \"recognized_text\": \"sample text\"}";
 
     @BeforeEach
     void setUp(){
@@ -40,7 +46,7 @@ class VoiceServiceTest {
                 .when(
                         request()
                                 .withMethod("POST")
-                                .withPath("/api/ai/voice/conformer")
+                                .withPath("/api/ai/model/conformer")
                 )
                 .respond(
                         response()
@@ -56,7 +62,7 @@ class VoiceServiceTest {
 
     @Test
     @DisplayName("음성 인식 기능 테스트")
-    void getAudioFile() throws IOException{
+    void getAudioFile() throws IOException {
         System.out.println("음성 인식 기능 테스트 시작");
         File file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + "sample.wav");
 
@@ -64,8 +70,8 @@ class VoiceServiceTest {
         MockMultipartFile multipartFile = new MockMultipartFile("audioFile", file.getName(), "multipart/form-data", fi1);
         String answer = "테스트 파일입니다.";
 
-        var actualResponse = voiceService.getAudioFile(multipartFile, answer);
-        String expected = "{\"result\":{\"index\":1},\"message\":\"\"}";
+        var actualResponse = problemService.gradeProblem(multipartFile, answer);
+        String expected = "{\"result\":{\"index\":1},\"message\":\"Success\"}";
 
         assertNotNull(actualResponse);
 
@@ -73,4 +79,8 @@ class VoiceServiceTest {
 
         assertEquals(expected, actual);
     }
+
+
 }
+
+
