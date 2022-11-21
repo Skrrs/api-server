@@ -133,12 +133,11 @@ public class UserService implements UserDetailsService {
         List<String> prons = new ArrayList<>();
         List<String> engs = new ArrayList<>();
         List<Integer> idxs = new ArrayList<>();
-        HashSet<Integer> progress;
         String level_s = null;
         switch(level){
-            case 1: level_s = "beginner"; progress = user.getProgress().getBeginner();break;
-            case 2: level_s = "intermediate"; progress = user.getProgress().getIntermediate();break;
-            case 3: level_s = "advanced"; progress = user.getProgress().getAdvanced();break;
+            case 1: level_s = "beginner"; break;
+            case 2: level_s = "intermediate"; break;
+            case 3: level_s = "advanced"; break;
             default: throw new CustomException(ErrorCode.INVALID_ACCESS);
         }
         // 요청한 전체 problem.
@@ -162,21 +161,8 @@ public class UserService implements UserDetailsService {
                 prons.add(problems.get(idx).getPron());
                 engs.add(problems.get(idx).getEnglish());
                 idxs.add(problems.get(idx).getIdx());
-                /* Main에서는 (Hashset size) / (해당 level problem size) 로 진행율 전송.*/
-                progress.add(problems.get(idx).getIdx()); // user 해당 난이도 진행도 기록.
             }
         }
-        // user 해당 난이도 진행도 기록.
-        if(level == 1){
-            user.getProgress().setBeginner(progress);
-        }
-        else if(level == 2){
-            user.getProgress().setIntermediate(progress);
-        }
-        else{
-            user.getProgress().setAdvanced(progress);
-        }
-        userRepository.save(user);
 
         // response dto 작성.
         var responseDto = ProblemResponseDto.builder()
@@ -221,22 +207,66 @@ public class UserService implements UserDetailsService {
         return response.success(responseDto,HttpStatus.OK);
     }
 
-    public ResponseEntity<?> favoriteAdd(String email,FavoriteRequestDto favoriteRequestDto){
+    public ResponseEntity<?> favoriteAdd(String email,Integer level,FavoriteRequestDto favoriteRequestDto){
         var userOptional = userRepository.findByEmail(email);
         if(userOptional.isEmpty()) throw new CustomException(ErrorCode.USER_NOT_FOUND);
 
         var user = userOptional.get();
         var idxs = favoriteRequestDto.getProblem();
+        var corrected = favoriteRequestDto.getCorrected();
         var pbs = user.getLibrary();
+        HashSet<Integer> progress;
 
-        for(int i=0;i<idxs.size();i++){
-            var idx = idxs.get(i);
-            var pb = problemRepository.findProblemByIdx(idx);
-            pbs.add(pb);
-        }
+        // 즐겨찾기 추가.
+        idxs.forEach(
+                idx->{
+                    var pb = problemRepository.findProblemByIdx(idx);
+                    pbs.add(pb);
+                }
+        );
         user.setLibrary(pbs);
+
+        // 난이도별 인덱스 범위 체크를 위한 변수.
+        var bsize = problemRepository.findProblemsByLevel("beginner").size();
+        var isize = problemRepository.findProblemsByLevel("intermediate").size();
+        var asize = problemRepository.findProblemsByLevel("advanced").size();
+        Integer low,high;
+        // user 해당 난이도 성취율 가져옴.
+        switch(level){
+            case 1:
+                low = 1; high = bsize;
+                progress = user.getProgress().getBeginner();break;
+            case 2:
+                low = bsize + 1; high = bsize + isize;
+                progress = user.getProgress().getIntermediate();break;
+            case 3:
+                low = bsize + isize + 1; high = bsize + isize + asize;
+                progress = user.getProgress().getAdvanced();break;
+            default:
+                throw new CustomException(ErrorCode.INVALID_ACCESS);
+        }
+
+        corrected.forEach(
+                idx ->{
+                    if(idx < low || high < idx)
+                        throw new CustomException(ErrorCode.INVALID_ACCESS);
+                    progress.add(idx);
+                }
+        );
+        // user 해당 난이도 성취율 기록.
+        if(level == 1){
+            user.getProgress().setBeginner(progress);
+        }
+        else if(level == 2){
+            user.getProgress().setIntermediate(progress);
+        }
+        else{
+            user.getProgress().setAdvanced(progress);
+        }
+
         userRepository.save(user);
         log.info("Add Favorite Success Idx:{}",idxs);
+        log.info("Progress Update Success corrected:{}",corrected);
         return response.success(null,HttpStatus.OK);
     }
     public ResponseEntity<?> favoriteRemove(String email,Integer index){
