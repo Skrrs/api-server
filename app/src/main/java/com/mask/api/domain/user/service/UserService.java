@@ -214,57 +214,57 @@ public class UserService implements UserDetailsService {
         var user = userOptional.get();
         var idxs = favoriteRequestDto.getProblem();
         var corrected = favoriteRequestDto.getCorrected();
-        var pbs = user.getLibrary();
+        var library_pbs = user.getLibrary();
+        List<Problem> level_pbs;
         HashSet<Integer> progress;
 
         // 즐겨찾기 추가.
         idxs.forEach(
                 idx->{
                     var pb = problemRepository.findProblemByIdx(idx);
-                    pbs.add(pb);
+                    library_pbs.add(pb);
                 }
         );
-        user.setLibrary(pbs);
+        user.setLibrary(library_pbs);
 
-        // 난이도별 인덱스 범위 체크를 위한 변수.
-        var bsize = problemRepository.findProblemsByLevel("beginner").size();
-        var isize = problemRepository.findProblemsByLevel("intermediate").size();
-        var asize = problemRepository.findProblemsByLevel("advanced").size();
-        Integer low,high;
-        // user 해당 난이도 성취율 가져옴.
+        // user 해당 난이도별 성취율,DB 인덱스들 가져옴.
         switch(level){
             case 1:
-                low = 1; high = bsize;
+                level_pbs = problemRepository.findProblemsByLevel("beginner");
                 progress = user.getProgress().getBeginner();break;
             case 2:
-                low = bsize + 1; high = bsize + isize;
+                level_pbs = problemRepository.findProblemsByLevel("intermediate");
                 progress = user.getProgress().getIntermediate();break;
             case 3:
-                low = bsize + isize + 1; high = bsize + isize + asize;
+                level_pbs = problemRepository.findProblemsByLevel("advanced");
                 progress = user.getProgress().getAdvanced();break;
             default:
                 throw new CustomException(ErrorCode.INVALID_ACCESS);
         }
 
         corrected.forEach(
-                idx ->{
-                    if(idx < low || high < idx)
+                idx -> {
+                    if (level_pbs.contains(problemRepository.findProblemByIdx(idx))) {
+                        //해당 레벨 문제중에 없는 인덱스면 에러.
                         throw new CustomException(ErrorCode.INVALID_ACCESS);
-                    progress.add(idx);
+                    }
+                    else {
+                        progress.add(idx);
+                    }
                 }
         );
         // user 해당 난이도 성취율 기록.
-        if(level == 1){
+        if(level == 1){ //beginner
             user.getProgress().setBeginner(progress);
         }
-        else if(level == 2){
+        else if(level == 2){ //intermediate
             user.getProgress().setIntermediate(progress);
         }
-        else{
+        else { //advanced
             user.getProgress().setAdvanced(progress);
         }
-
         userRepository.save(user);
+
         log.info("Add Favorite Success Idx:{}",idxs);
         log.info("Progress Update Success corrected:{}",corrected);
         return response.success(null,HttpStatus.OK);
