@@ -1,16 +1,18 @@
 server:
-  port : 8000
+  port:
+
 spring:
   ai:
-    url: http://localhost:8888/api/ai/voice/
+    url:
   data:
     mongodb:
-      host: 127.0.0.1
-      port: 27017
-      authentication-database: admin
-      database : mask
+      host:
+      port:
+      authentication-database:
+      database :
+      username:
+      password:
 
   redis:
-#    host: redis
-    host: 127.0.0.1
-    port: 6379
+    host:
+    port:
