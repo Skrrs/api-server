@@ -80,10 +80,11 @@ public class UserController {
             @ApiResponse(code = 404, message = "유저 정보 에러."),
             @ApiResponse(code = 500, message = "서버 내부 에러.")
     })
-    @PostMapping("/user/{email}/fav")
+    @PostMapping("/user/{email}/fav/{level}")
     public ResponseEntity<?> favoriteAdd(@PathVariable(name="email")String email,
+                                         @PathVariable(name="level")Integer level,
                                          @RequestBody FavoriteRequestDto favoriteRequestDto){
-        return userService.favoriteAdd(email,favoriteRequestDto);
+        return userService.favoriteAdd(email,level,favoriteRequestDto);
     }
 
     @Operation(summary = "즐겨찾기 요청 API", description = "유저에 해당하는 즐겨찾기 문제 제공.")

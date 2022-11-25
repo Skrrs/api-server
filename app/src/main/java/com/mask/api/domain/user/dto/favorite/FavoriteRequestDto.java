@@ -7,4 +7,5 @@ import java.util.List;
 @Getter
 public class FavoriteRequestDto {
     private List<Integer> problem;
+    private List<Integer> corrected;
 }
