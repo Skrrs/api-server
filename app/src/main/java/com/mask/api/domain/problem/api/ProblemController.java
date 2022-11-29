@@ -25,8 +25,8 @@ public class ProblemController  {
             @ApiResponse(code = 500, message = "서버 내부 에러.")
     })
     @PostMapping("/grade")
-    public ResponseEntity<?> gradeProblem(@RequestPart MultipartFile audioFile, String answer) {
-        return problemService.gradeProblem(audioFile, answer);
+    public ResponseEntity<?> gradeProblem(@RequestPart MultipartFile file, String answer) {
+        return problemService.gradeProblem(file, answer);
     }
 
     @Operation(summary = "DB 삽입 API", description = "최초 DB 데이터 삽입 용도.")
