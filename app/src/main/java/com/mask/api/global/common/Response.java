@@ -1,5 +1,7 @@
 package com.mask.api.global.common;
 
+import com.mask.api.global.exception.CustomException;
+import com.mask.api.global.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,12 +33,13 @@ public class Response {
         return ResponseEntity.status(status).body(body);
     }
 
-    public ResponseEntity<?> fail(String errorMessage, HttpStatus status){
+    public ResponseEntity<?> fail(CustomException e){//String errorMessage, HttpStatus status){
+        ErrorCode errorCode = e.getErrorCode();
         Body body = Body.builder()
-                .message(errorMessage)
+                .message(errorCode.getDetail())
                 .build();
 
-        return ResponseEntity.status(status).body(body);
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(body);
     }
 
 
