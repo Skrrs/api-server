@@ -102,4 +102,7 @@ public class ProblemService {
         return 3;
     }
 
+    public void initDB() {
+        problemRepository.deleteAll();
+    }
 }

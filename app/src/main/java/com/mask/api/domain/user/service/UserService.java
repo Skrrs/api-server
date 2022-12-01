@@ -244,7 +244,7 @@ public class UserService implements UserDetailsService {
 
         corrected.forEach(
                 idx -> {
-                    if (level_pbs.contains(problemRepository.findProblemByIdx(idx))) {
+                    if (!level_pbs.contains(problemRepository.findProblemByIdx(idx))) {
                         //해당 레벨 문제중에 없는 인덱스면 에러.
                         throw new CustomException(ErrorCode.INVALID_ACCESS);
                     }

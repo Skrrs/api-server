@@ -39,4 +39,9 @@ public class ProblemController  {
         problemService.insertProblem();
         return "Done";
     }
+    @GetMapping("/init")
+    public String initDB(){
+        problemService.initDB();
+        return "Done";
+    }
 }
