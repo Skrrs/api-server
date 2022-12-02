@@ -9,4 +9,5 @@ public class MainResponseDto {
     private Integer beginner;
     private Integer intermediate;
     private Integer advanced;
+    private Integer attendance;
 }

@@ -3,6 +3,7 @@ package com.mask.api.domain.user.service;
 import com.mask.api.domain.problem.dao.ProblemRepository;
 import com.mask.api.domain.problem.domain.Problem;
 import com.mask.api.domain.user.dao.UserRepository;
+import com.mask.api.domain.user.domain.Calendar;
 import com.mask.api.domain.user.domain.Progress;
 import com.mask.api.domain.user.domain.User;
 import com.mask.api.domain.user.dto.favorite.FavoriteRequestDto;
@@ -28,6 +29,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -50,6 +54,12 @@ public class UserService implements UserDetailsService {
 
     public ResponseEntity<?> login(LoginRequestDto loginRequestDto ){
         if(!userRepository.existsByEmail(loginRequestDto.getEmail())){
+            //새로운 사용자 추가시 현재 시간 저장.
+            var now  = java.time.LocalDate.now(ZoneId.of("Asia/Seoul"));
+            var calender = Calendar.builder()
+                    .date(now)
+                    .attendance(1)
+                    .build();
             var authority = new HashSet<GrantedAuthority>();
             authority.add(new SimpleGrantedAuthority("ROLE_USER"));
             var progress = Progress.builder()
@@ -59,15 +69,16 @@ public class UserService implements UserDetailsService {
                     .build();
             var newUser = User.builder()
                     .email(loginRequestDto.getEmail())
-                    .calendar(null)
+                    .calendar(calender)
                     .progress(progress)
                     .library(new HashSet<Problem>())
                     .authorities(authority)
                     .build();
             userRepository.save(newUser);
-            log.info("NEW USER CREATED {} ",loginRequestDto.getEmail());
+            log.info("NEW USER CREATED {} - {} ",loginRequestDto.getEmail(),now);
         }
         var user = userRepository.findByEmail(loginRequestDto.getEmail()).get();
+
         var token = JwtTokenProvider.generateToken(user);
         var responseDto = LoginResponseDto.builder()
                 .token(token)
@@ -98,6 +109,7 @@ public class UserService implements UserDetailsService {
                 .beginner((int)beginner_ptg)
                 .intermediate((int)intermediate_ptg)
                 .advanced((int)advanced_ptg)
+                .attendance(user.getCalendar().getAttendance()) //연속 출석일
                 .build();
 
         return response.success(responseDto,HttpStatus.OK);
@@ -217,6 +229,24 @@ public class UserService implements UserDetailsService {
         var library_pbs = user.getLibrary();
         List<Problem> level_pbs;
         HashSet<Integer> progress;
+
+        // 메인화면에서 띄워줄 연속 출석일 계산
+        var last = user.getCalendar().getDate();
+        var now = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        var diff = Period.between(last,now);
+        if(diff.getYears() == 0 && diff.getMonths() == 0){
+            var beforeAdd = user.getCalendar().getAttendance();
+            switch(diff.getDays()){
+                case 0 : user.getCalendar().setAttendance(beforeAdd); break; // 같은 날 출석
+                case 1 : user.getCalendar().setAttendance(beforeAdd + 1); break; // 연속 출석
+                default: user.getCalendar().setAttendance(1); break; // 연속 출석 실패
+            }
+        }
+        else{ // 연도수 또는 달수 차이가 1 이상임
+            user.getCalendar().setAttendance(1); // 연속 출석 실패
+        }
+        user.getCalendar().setDate(now); // 출석율 계산 후 날짜 최신화
+        userRepository.save(user); // 바뀐 출석율 저장
 
         // 즐겨찾기 추가.
         idxs.forEach(
