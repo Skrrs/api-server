@@ -1,0 +1,22 @@
+server:
+  port:
+
+spring:
+  ai:
+    url:
+  data:
+    mongodb:
+      host:
+      port:
+      authentication-database:
+      database :
+      username:
+      password:
+
+  redis:
+    host:
+    port:
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
